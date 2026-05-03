@@ -1,28 +1,30 @@
-# PromptWars - CivicGuide Election Assistant
+# CivicGuide - Election Education Assistant 🗳️
 
-CivicGuide is an intelligent, dynamic, and neutral Election Assistant built for the PromptWars challenge. It is designed to help users navigate the election process by providing clear instructions on voter registration, polling places, important dates, and general election mechanics.
+**A submission for Prompt Wars by Hack2Skill**
 
-## 🎯 Challenge Vertical & Persona
-This solution is designed around the **"General Voter / First-Time Voter"** persona. The assistant adopts a friendly, accessible, and completely politically neutral tone. It breaks down complex electoral information into simple, actionable steps using a beautiful chat interface.
+## 🏆 The Event & Problem Statement
+This project was developed for **Prompt Wars**, a hackathon organized by **Hack2Skill**. 
+
+**Problem Statement:** 
+Create a smart, dynamic assistant that helps users understand the election process, timelines, and steps in an interactive and easy-to-follow way.
+
+## 🎯 Goal of the App
+**CivicGuide** is an intelligent, dynamic, and completely neutral Election Education Assistant. Its primary goal is to democratize knowledge about the voting process. It acts as a personal tutor for the "General / First-Time Voter", breaking down complex electoral information—like voter registration requirements, finding polling places, understanding mail-in ballots, and important deadlines—into simple, actionable, and politically neutral steps. 
 
 ## ✨ Features
-- **Smart Conversational Interface:** Powered by Google's Gemini 1.5 Flash.
+- **Smart Conversational Interface:** Powered by Google's cutting-edge Gemini 2.5 Flash model.
+- **Strictly Educational & Neutral:** Guided by robust System Instructions to ensure it never endorses candidates or parties, focusing purely on civic mechanics.
 - **Modern UI/UX:** Responsive design, glassmorphism elements, dynamic sidebar, and smooth micro-animations.
 - **100% Secure Architecture:** Uses a Vercel Serverless Backend. The API key is fully hidden on the server and is never exposed to the frontend browser or committed to GitHub.
-- **Lightning Fast & Lightweight:** Built with Vite and React, keeping the application payload incredibly small.
 
-## 🚀 How to Run & Deploy
+## 👥 How to Use This App
+Using CivicGuide is incredibly simple:
+1. **Open the App:** Visit the live Vercel deployment link.
+2. **Select a Quick Topic:** Use the sidebar to instantly ask common questions like "Am I registered?", "Where do I vote?", or "Voter ID Laws".
+3. **Chat Naturally:** Type any question you have about the democratic process into the chat box.
+4. **Learn:** CivicGuide will provide you with step-by-step, factual guidance. *(Note: Always verify critical deadlines with your local election office).*
 
-### Deploying Securely to Vercel (Recommended)
-This application is architected to be deployed on Vercel, utilizing the `api/chat.js` folder for a secure serverless backend.
-
-1. Create a GitHub repository and push this code (your `.env` file is ignored, so the API key will not be pushed).
-2. Go to [Vercel](https://vercel.com/) and create a new project from your GitHub repository.
-3. In the Vercel project configuration, go to **Settings > Environment Variables**.
-4. Add a new variable:
-   - Key: `VITE_GEMINI_API_KEY`
-   - Value: `[Paste your Gemini API key from Google AI Studio]`
-5. Deploy the app! Vercel will automatically build the Vite frontend and spin up the `/api/chat` serverless backend. Your app will work instantly for anyone, and your API key will remain 100% invisible.
+## 🚀 How to Run Locally
 
 ### Local Development
 To test both the frontend and the backend locally, you will need the Vercel CLI, as standard Vite does not run the serverless backend.
@@ -31,16 +33,18 @@ To test both the frontend and the backend locally, you will need the Vercel CLI,
    ```bash
    npm i -g vercel
    ```
-2. Link your project and run the local Vercel development server:
+2. Create a `.env` file in the root directory and add your API key:
+   ```env
+   VITE_GEMINI_API_KEY=your_gemini_api_key_here
+   ```
+3. Link your project and run the local Vercel development server:
    ```bash
    vercel dev
    ```
-3. Open the provided `localhost` link to test the chat interface.
+4. Open the provided `localhost` link to test the chat interface.
 
 ## 🛠️ Built With
-- React.js & Vite
-- Node.js (Vercel Serverless Functions)
-- Google Generative AI SDK (`@google/generative-ai`)
-- Lucide React (Icons)
-- React Markdown (Rich text rendering)
-- Vanilla CSS (Tailored UI aesthetics)
+- **Frontend:** React.js & Vite
+- **Backend:** Node.js (Vercel Serverless Functions)
+- **AI:** Google Generative AI SDK (`@google/generative-ai`, `gemini-2.5-flash`)
+- **Styling & UI:** Vanilla CSS, Lucide React, React Markdown
