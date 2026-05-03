@@ -44,7 +44,7 @@ export default async function handler(req, res) {
 
   try {
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ 
+    const model = genAI.getGenerativeModel({
       model: "gemini-1.5-flash",
       systemInstruction: ELECTION_SYSTEM_INSTRUCTION
     });
@@ -53,7 +53,7 @@ export default async function handler(req, res) {
     let formattedHistory = history.map(msg => ({
       role: msg.role === 'assistant' ? 'model' : 'user',
       // Ensure historical messages are also truncated if somehow manipulated
-      parts: [{ text: String(msg.content).substring(0, 1000) }] 
+      parts: [{ text: String(msg.content).substring(0, 1000) }]
     }));
 
     // Gemini API strict requirement: History must start with a 'user' role.
