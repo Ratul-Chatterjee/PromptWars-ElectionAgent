@@ -70,10 +70,6 @@ export default async function handler(req, res) {
     const response = await result.response;
     const text = response.text();
 
-    const result = await chat.sendMessage(message);
-    const response = await result.response;
-    const text = response.text();
-
     return res.status(200).json({ reply: text });
   } catch (error) {
     console.error('Gemini API Error:', error);
