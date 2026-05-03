@@ -70,9 +70,14 @@ export default async function handler(req, res) {
     const response = await result.response;
     const text = response.text();
 
+    const result = await chat.sendMessage(message);
+    const response = await result.response;
+    const text = response.text();
+
     return res.status(200).json({ reply: text });
   } catch (error) {
     console.error('Gemini API Error:', error);
-    return res.status(500).json({ error: 'Failed to generate response from the AI service.' });
+    // Send the exact error message back to the frontend so we can see what is failing on Vercel
+    return res.status(500).json({ error: `AI Service Error: ${error.message}` });
   }
 }

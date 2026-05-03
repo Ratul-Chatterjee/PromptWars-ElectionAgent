@@ -7,7 +7,7 @@ function App() {
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
-      content: 'Hello! I am CivicGuide, your personal election assistant. I can help you with voter registration, finding your polling place, understanding mail-in ballots, or general election timelines. What can I help you with today?'
+      content: 'Hello! I am CivicGuide, your Election Education Assistant. My purpose is to help you learn about the democratic process. I can educate you on voter registration steps, how to locate polling places, understanding mail-in ballots, or the general election timeline. What would you like to learn about today?'
     }
   ]);
   const [input, setInput] = useState('');
@@ -104,11 +104,11 @@ function App() {
 
         <div className="sidebar-content">
           <div className="info-card">
-            <h3>Your Election Hub</h3>
-            <p>Get neutral, factual information about how, when, and where to vote.</p>
+            <h3>Election Education Hub</h3>
+            <p>Learn the mechanics of democracy. Get neutral, factual education on how, when, and where the voting process works.</p>
           </div>
 
-          <h3 className="section-title">Common Topics</h3>
+          <h3 className="section-title">Educational Topics</h3>
           <ul className="quick-links-list">
             {quickLinks.map((link, idx) => (
               <li key={idx}>
@@ -137,8 +137,8 @@ function App() {
             <Menu size={24} />
           </button>
           <div className="header-title">
-            <h1>Election Assistant</h1>
-            <span className="status-badge">Beta</span>
+            <h1>Election Education App</h1>
+            <span className="status-badge">Learn</span>
           </div>
         </header>
 
@@ -191,7 +191,7 @@ function App() {
             </button>
           </form>
           <div className="input-footer">
-            CivicGuide uses AI. Please verify important deadlines.
+            CivicGuide is an educational AI tool. Please verify official deadlines with local authorities.
           </div>
         </div>
       </main>
