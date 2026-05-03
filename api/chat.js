@@ -10,12 +10,32 @@ If you don't know the specific rules for a user's local area, advise them to che
 `;
 
 export default async function handler(req, res) {
+  // SECURITY CHECK 1: Restrict to POST requests only
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // The VITE_GEMINI_API_KEY environment variable will be read securely from the Vercel server.
-  // It is NEVER exposed to the frontend browser.
+  const { message, history } = req.body;
+
+  // SECURITY CHECK 2: Strict Input Validation & Type Checking
+  if (!message || typeof message !== 'string') {
+    return res.status(400).json({ error: 'Invalid message format.' });
+  }
+  if (!Array.isArray(history)) {
+    return res.status(400).json({ error: 'Invalid history format.' });
+  }
+
+  // SECURITY CHECK 3: Payload Size Limits (Prevents Token Draining Attacks)
+  // Limit user messages to 500 characters
+  if (message.length > 500) {
+    return res.status(400).json({ error: 'Message exceeds maximum length of 500 characters.' });
+  }
+  // Limit conversation history to the last 20 messages to save tokens
+  if (history.length > 20) {
+    return res.status(400).json({ error: 'Conversation history is too long. Please refresh to start a new chat.' });
+  }
+
+  // Securely retrieve the API key from Vercel's hidden environment variables
   const apiKey = process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
@@ -23,30 +43,27 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { message, history } = req.body;
-    
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ 
       model: "gemini-1.5-flash",
       systemInstruction: ELECTION_SYSTEM_INSTRUCTION
     });
 
-    // Format the conversation history for the Gemini API
+    // Clean and strictly format the history before sending to Google
     const formattedHistory = history.map(msg => ({
       role: msg.role === 'assistant' ? 'model' : 'user',
-      parts: [{ text: msg.content }]
+      // Ensure historical messages are also truncated if somehow manipulated
+      parts: [{ text: String(msg.content).substring(0, 1000) }] 
     }));
 
     const chat = model.startChat({
       history: formattedHistory
     });
 
-    // Send the new message to the API
     const result = await chat.sendMessage(message);
     const response = await result.response;
     const text = response.text();
 
-    // Send the generated reply back to our frontend
     return res.status(200).json({ reply: text });
   } catch (error) {
     console.error('Gemini API Error:', error);
