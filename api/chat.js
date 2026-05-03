@@ -44,9 +44,11 @@ export default async function handler(req, res) {
 
   try {
     const genAI = new GoogleGenerativeAI(apiKey);
-    // Switch to the universally available 'gemini-pro' base model to fix 404 errors
+    // We are running in a 2026+ environment, where older 1.x models are deprecated.
+    // Switching to the modern 'gemini-2.5-flash' model.
     const model = genAI.getGenerativeModel({
-      model: "gemini-pro"
+      model: "gemini-2.5-flash",
+      systemInstruction: ELECTION_SYSTEM_INSTRUCTION
     });
 
     // Clean and strictly format the history before sending to Google
@@ -61,13 +63,6 @@ export default async function handler(req, res) {
     if (formattedHistory.length > 0 && formattedHistory[0].role === 'model') {
       formattedHistory.shift();
     }
-
-    // Inject the System Instruction as the first conversation turn manually.
-    // This guarantees compatibility with gemini-pro globally, bypassing any 404 errors.
-    formattedHistory.unshift(
-      { role: 'user', parts: [{ text: "System Command: " + ELECTION_SYSTEM_INSTRUCTION }] },
-      { role: 'model', parts: [{ text: "I understand. I will act strictly as CivicGuide, the neutral election education assistant." }] }
-    );
 
     const chat = model.startChat({
       history: formattedHistory
