@@ -50,11 +50,17 @@ export default async function handler(req, res) {
     });
 
     // Clean and strictly format the history before sending to Google
-    const formattedHistory = history.map(msg => ({
+    let formattedHistory = history.map(msg => ({
       role: msg.role === 'assistant' ? 'model' : 'user',
       // Ensure historical messages are also truncated if somehow manipulated
       parts: [{ text: String(msg.content).substring(0, 1000) }] 
     }));
+
+    // Gemini API strict requirement: History must start with a 'user' role.
+    // Our UI starts with an assistant greeting, which we must drop from the API history.
+    if (formattedHistory.length > 0 && formattedHistory[0].role === 'model') {
+      formattedHistory.shift();
+    }
 
     const chat = model.startChat({
       history: formattedHistory
