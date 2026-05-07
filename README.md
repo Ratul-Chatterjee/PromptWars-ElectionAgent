@@ -11,40 +11,39 @@ Create a smart, dynamic assistant that helps users understand the election proce
 ## 🎯 Goal of the App
 **CivicGuide** is an intelligent, dynamic, and completely neutral Election Education Assistant. Its primary goal is to democratize knowledge about the voting process. It acts as a personal tutor for the "General / First-Time Voter", breaking down complex electoral information—like voter registration requirements, finding polling places, understanding mail-in ballots, and important deadlines—into simple, actionable, and politically neutral steps. 
 
+## 🛡️ Secure BYOK Architecture (Bring Your Own Key)
+This version of CivicGuide uses a **Privacy-First Architecture**:
+- **Zero Server Storage:** Your API key is never stored on our servers.
+- **Local Control:** Your key is stored locally in your own browser's `localStorage`.
+- **Client-Side AI:** All AI processing happens directly between your browser and Google's Gemini API.
+
 ## ✨ Features
 - **Smart Conversational Interface:** Powered by Google's cutting-edge Gemini 2.5 Flash model.
-- **Strictly Educational & Neutral:** Guided by robust System Instructions to ensure it never endorses candidates or parties, focusing purely on civic mechanics.
-- **Modern UI/UX:** Responsive design, glassmorphism elements, dynamic sidebar, and smooth micro-animations.
-- **100% Secure Architecture:** Uses a Vercel Serverless Backend. The API key is fully hidden on the server and is never exposed to the frontend browser or committed to GitHub.
+- **Setup Wizard:** A user-friendly modal that guides you through getting your free API key.
+- **Modern UI/UX:** Responsive design, glassmorphism elements, and smooth micro-animations.
+- **Strictly Educational:** Neutral guidance on civic mechanics.
 
 ## 👥 How to Use This App
-Using CivicGuide is incredibly simple:
-1. **Open the App:** Visit the live Vercel deployment link.
-2. **Select a Quick Topic:** Use the sidebar to instantly ask common questions like "Am I registered?", "Where do I vote?", or "Voter ID Laws".
-3. **Chat Naturally:** Type any question you have about the democratic process into the chat box.
-4. **Learn:** CivicGuide will provide you with step-by-step, factual guidance. *(Note: Always verify critical deadlines with your local election office).*
+1. **Open the App:** Visit the live deployment.
+2. **Setup AI:** Enter your Gemini API key in the setup modal.
+3. **Tutorial:** Use the built-in guide within the app to learn how to get a free key from Google AI Studio.
+4. **Chat & Learn:** Ask anything about the democratic process!
 
-## 🚀 How to Run Locally
+## 🚀 Local Development
 
-### Local Development
-To test both the frontend and the backend locally, you will need the Vercel CLI, as standard Vite does not run the serverless backend.
-
-1. Install Vercel CLI globally:
+1. **Clone the Repo.**
+2. **Install Dependencies:**
    ```bash
-   npm i -g vercel
+   npm install
    ```
-2. Create a `.env` file in the root directory and add your API key:
-   ```env
-   VITE_GEMINI_API_KEY=your_gemini_api_key_here
-   ```
-3. Link your project and run the local Vercel development server:
+3. **Run Dev Server:**
    ```bash
-   vercel dev
+   npm run dev
    ```
-4. Open the provided `localhost` link to test the chat interface.
+4. **Enter Key:** Paste your key in the app UI.
 
 ## 🛠️ Built With
 - **Frontend:** React.js & Vite
-- **Backend:** Node.js (Vercel Serverless Functions)
-- **AI:** Google Generative AI SDK (`@google/generative-ai`, `gemini-2.5-flash`)
-- **Styling & UI:** Vanilla CSS, Lucide React, React Markdown
+- **AI:** Google Generative AI SDK (`gemini-2.5-flash`)
+- **Icons:** Lucide React
+- **Formatting:** React Markdown
