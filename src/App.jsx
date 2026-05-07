@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Info, MapPin, Calendar, CheckCircle2, ChevronRight, Menu, X, Loader2, Key, ExternalLink } from 'lucide-react';
+import { Send, Bot, User, Info, MapPin, Calendar, CheckCircle2, ChevronRight, Menu, X, Loader2, Key, ExternalLink, RefreshCw, ShieldCheck } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import './App.css';
@@ -27,6 +27,8 @@ function App() {
   const [apiKey, setApiKey] = useState(localStorage.getItem('gemini_api_key') || '');
   const [showKeyModal, setShowKeyModal] = useState(!localStorage.getItem('gemini_api_key'));
   const [tempKey, setTempKey] = useState('');
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [verifyStatus, setVerifyStatus] = useState(null); // 'success' | 'error' | null
   
   const messagesEndRef = useRef(null);
 
@@ -38,13 +40,35 @@ function App() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const handleSaveKey = (e) => {
+  const handleVerifyAndSave = async (e) => {
     e.preventDefault();
-    if (!tempKey.trim()) return;
-    localStorage.setItem('gemini_api_key', tempKey.trim());
-    setApiKey(tempKey.trim());
-    setShowKeyModal(false);
-    setMessages(prev => [...prev, { role: 'assistant', content: 'Great! Your API key is set. How can I help you learn about elections today?' }]);
+    const keyToTest = tempKey.trim();
+    if (!keyToTest) return;
+
+    setIsVerifying(true);
+    setVerifyStatus(null);
+    setErrorMsg('');
+
+    try {
+      const genAI = new GoogleGenerativeAI(keyToTest);
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      // Simple test prompt to verify key
+      await model.generateContent("test");
+      
+      localStorage.setItem('gemini_api_key', keyToTest);
+      setApiKey(keyToTest);
+      setVerifyStatus('success');
+      setTimeout(() => {
+        setShowKeyModal(false);
+        setMessages(prev => [...prev, { role: 'assistant', content: '✅ API Key Verified! Your connection is secure. How can I help you learn about elections today?' }]);
+      }, 1000);
+    } catch (error) {
+      console.error('Verification Error:', error);
+      setVerifyStatus('error');
+      setErrorMsg("Invalid API Key. Please ensure you copied it correctly from Google AI Studio.");
+    } finally {
+      setIsVerifying(false);
+    }
   };
 
   const handleClearKey = () => {
@@ -52,6 +76,7 @@ function App() {
     setApiKey('');
     setShowKeyModal(true);
     setTempKey('');
+    setVerifyStatus(null);
   };
 
   const handleSend = async (e) => {
@@ -77,7 +102,6 @@ function App() {
         systemInstruction: ELECTION_SYSTEM_INSTRUCTION
       });
 
-      // Filter and format history for Gemini
       let formattedHistory = currentHistory
         .filter(msg => !msg.content.includes("Please enter your Gemini API key"))
         .map(msg => ({
@@ -85,7 +109,6 @@ function App() {
           parts: [{ text: msg.content }]
         }));
 
-      // Ensure history starts with user if not empty
       if (formattedHistory.length > 0 && formattedHistory[0].role === 'model') {
         formattedHistory.shift();
       }
@@ -101,23 +124,16 @@ function App() {
       setMessages(prev => [...prev, { role: 'assistant', content: text }]);
     } catch (error) {
       console.error('Gemini Error:', error);
-      let errorText = "I encountered an error. Please check your API key.";
+      let errorText = "AI Service Error. Please check your API key.";
       if (error.message?.includes("API_KEY_INVALID")) {
-        errorText = "The API key you provided is invalid. Please update it in settings.";
+        errorText = "Your API key is invalid or has expired. Please update it in settings.";
       }
       setErrorMsg(errorText);
-      setMessages(prev => [...prev, { role: 'assistant', content: "I couldn't process that. Please verify your API key in the settings." }]);
+      setMessages(prev => [...prev, { role: 'assistant', content: "I encountered an error. This usually happens if the API key is incorrect." }]);
     } finally {
       setIsLoading(false);
     }
   };
-
-  const quickLinks = [
-    { icon: <CheckCircle2 size={18} />, title: "Am I registered?", query: "How do I check if I am registered to vote?" },
-    { icon: <MapPin size={18} />, title: "Where do I vote?", query: "How can I find my polling place?" },
-    { icon: <Calendar size={18} />, title: "Important Dates", query: "What are the general important dates in an election cycle?" },
-    { icon: <Info size={18} />, title: "Voter ID Laws", query: "What kind of ID do I need to bring to vote?" },
-  ];
 
   const handleQuickLink = (query) => {
     if (!apiKey) {
@@ -138,55 +154,69 @@ function App() {
         <div className="modal-overlay">
           <div className="modal-content">
             <div className="modal-header">
-              <Key size={24} className="key-icon-main" />
-              <h2>Setup Your AI Assistant</h2>
+              <div className="header-icon-bg"><Key size={20} /></div>
+              <h2>AI Setup Guide</h2>
               <button className="close-modal" onClick={() => apiKey && setShowKeyModal(false)}>
                 {apiKey ? <X size={20} /> : null}
               </button>
             </div>
             
-            <div className="modal-body">
-              <p className="modal-intro">To provide you with secure, personalized election education, CivicGuide requires a Gemini API key. Your key is stored <strong>locally in your browser</strong> and never sent to our servers.</p>
+            <div className="modal-body scrollable">
+              <div className="privacy-badge">
+                <ShieldCheck size={14} />
+                <span>Private & Local Storage</span>
+              </div>
+
+              <p className="modal-intro">CivicGuide is a privacy-first app. To start, you'll need a free Gemini API key from Google. Your key stays on your device.</p>
               
-              <div className="guide-section">
-                <h3>How to get your free API key:</h3>
-                <ol className="guide-steps">
-                  <li>Visit <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer">Google AI Studio <ExternalLink size={14} /></a></li>
-                  <li>Sign in with your Google account.</li>
-                  <li>Click on <strong>"Create API key"</strong>.</li>
-                  <li>Copy your new key and paste it below.</li>
-                </ol>
-                <div className="guide-illustration">
-                  <div className="mock-browser">
-                    <div className="mock-header">
-                      <span className="dot red"></span><span className="dot yellow"></span><span className="dot green"></span>
-                    </div>
-                    <div className="mock-content">
-                      <div className="mock-sidebar"></div>
-                      <div className="mock-main">
-                        <div className="mock-btn-highlight">Create API key</div>
-                        <div className="mock-key-box">AIzaSy...xxxx</div>
-                      </div>
-                    </div>
+              <div className="setup-steps">
+                <div className="step">
+                  <span className="step-num">1</span>
+                  <div className="step-text">
+                    Visit <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer">Google AI Studio <ExternalLink size={12} /></a>
                   </div>
-                  <p className="illustration-caption">Look for the "Create API key" button in Google AI Studio.</p>
+                </div>
+                <div className="step">
+                  <span className="step-num">2</span>
+                  <div className="step-text">Click <strong>"Create API key"</strong></div>
+                </div>
+                <div className="step">
+                  <span className="step-num">3</span>
+                  <div className="step-text">Copy and paste it below</div>
                 </div>
               </div>
 
-              <form onSubmit={handleSaveKey} className="key-form">
-                <div className="input-group">
-                  <label htmlFor="api-key">Paste Gemini API Key:</label>
+              <div className="visual-guide">
+                <div className="browser-mockup">
+                  <div className="browser-controls">
+                    <span className="b-dot"></span><span className="b-dot"></span><span className="b-dot"></span>
+                  </div>
+                  <div className="browser-ui">
+                    <div className="ui-btn">Create API key</div>
+                  </div>
+                </div>
+              </div>
+
+              <form onSubmit={handleVerifyAndSave} className="key-setup-form">
+                <div className="input-field">
                   <input 
-                    id="api-key"
                     type="password" 
-                    placeholder="Enter key starting with AIza..." 
+                    placeholder="Enter API Key (AIza...)" 
                     value={tempKey}
                     onChange={(e) => setTempKey(e.target.value)}
-                    autoComplete="off"
+                    className={verifyStatus}
                   />
+                  {isVerifying && <RefreshCw size={18} className="input-spinner" />}
                 </div>
-                <button type="submit" className="save-key-btn" disabled={!tempKey.trim()}>
-                  Start Learning
+                
+                {verifyStatus === 'error' && <p className="field-error">{errorMsg}</p>}
+                
+                <button 
+                  type="submit" 
+                  className={`action-btn ${verifyStatus}`} 
+                  disabled={!tempKey.trim() || isVerifying}
+                >
+                  {isVerifying ? 'Verifying Key...' : verifyStatus === 'success' ? 'Connection Ready!' : 'Activate CivicGuide'}
                 </button>
               </form>
             </div>
@@ -194,10 +224,9 @@ function App() {
         </div>
       )}
 
-      {/* Mobile Sidebar Overlay */}
+      {/* Sidebar logic remains consistent but with cleaner key management */}
       {sidebarOpen && <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)}></div>}
 
-      {/* Sidebar */}
       <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
           <div className="logo-container">
@@ -211,27 +240,35 @@ function App() {
 
         <div className="sidebar-content">
           <div className="info-card">
-            <h3>Election Education Hub</h3>
-            <p>Learn the mechanics of democracy. Get neutral, factual education on how, when, and where the voting process works.</p>
+            <h3>Education Hub</h3>
+            <p>Neutral education on the voting process and democratic mechanics.</p>
           </div>
 
-          <button className="manage-key-btn" onClick={() => {
-            setTempKey(apiKey);
-            setShowKeyModal(true);
-            setSidebarOpen(false);
-          }}>
-            <Key size={16} />
-            <span>Manage API Key</span>
-          </button>
+          <div className="key-management-card">
+            <div className="key-status">
+              <Key size={14} />
+              <span>{apiKey ? 'Key Active' : 'No Key Set'}</span>
+            </div>
+            <button className="text-link-btn" onClick={() => {
+              setTempKey(apiKey);
+              setShowKeyModal(true);
+              setSidebarOpen(false);
+            }}>
+              {apiKey ? 'Update Key' : 'Configure Key'}
+            </button>
+            {apiKey && <button className="text-link-btn danger" onClick={handleClearKey}>Remove</button>}
+          </div>
 
           <h3 className="section-title">Educational Topics</h3>
           <ul className="quick-links-list">
-            {quickLinks.map((link, idx) => (
+            {[
+              { icon: <CheckCircle2 size={18} />, title: "Am I registered?", query: "How do I check if I am registered to vote?" },
+              { icon: <MapPin size={18} />, title: "Where do I vote?", query: "How can I find my polling place?" },
+              { icon: <Calendar size={18} />, title: "Important Dates", query: "What are the general important dates in an election cycle?" },
+              { icon: <Info size={18} />, title: "Voter ID Laws", query: "What kind of ID do I need to bring to vote?" },
+            ].map((link, idx) => (
               <li key={idx}>
-                <button className="quick-link-btn" onClick={() => {
-                  setSidebarOpen(false);
-                  handleQuickLink(link.query);
-                }}>
+                <button className="quick-link-btn" onClick={() => handleQuickLink(link.query)}>
                   <span className="link-icon">{link.icon}</span>
                   <span className="link-title">{link.title}</span>
                   <ChevronRight size={16} className="link-arrow" />
@@ -240,13 +277,8 @@ function App() {
             ))}
           </ul>
         </div>
-        
-        <div className="sidebar-footer">
-          <p className="disclaimer">CivicGuide is an open educational tool. Your API key remains private on your device.</p>
-        </div>
       </aside>
 
-      {/* Main Chat Area */}
       <main className="main-content">
         <header className="top-header">
           <button className="menu-btn" onClick={() => setSidebarOpen(true)}>
@@ -254,16 +286,17 @@ function App() {
           </button>
           <div className="header-title">
             <h1>Election Education App</h1>
-            <span className="status-badge">Learn</span>
+            <span className="status-badge">AI Powered</span>
           </div>
           {apiKey && (
-            <button className="header-key-btn" onClick={() => setShowKeyModal(true)} title="Update API Key">
-              <Key size={20} />
+            <button className="header-key-btn" onClick={() => setShowKeyModal(true)}>
+              <Key size={18} />
+              <span className="btn-label">API Key</span>
             </button>
           )}
         </header>
 
-        {errorMsg && (
+        {errorMsg && !showKeyModal && (
           <div className="error-banner">
             <Info size={18} />
             <span>{errorMsg}</span>
@@ -278,11 +311,7 @@ function App() {
                   {msg.role === 'assistant' ? <Bot size={20} /> : <User size={20} />}
                 </div>
                 <div className="message-content">
-                  {msg.role === 'assistant' ? (
-                     <ReactMarkdown>{msg.content}</ReactMarkdown>
-                  ) : (
-                    <p>{msg.content}</p>
-                  )}
+                  {msg.role === 'assistant' ? <ReactMarkdown>{msg.content}</ReactMarkdown> : <p>{msg.content}</p>}
                 </div>
               </div>
             ))}
@@ -304,7 +333,7 @@ function App() {
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder={apiKey ? "Ask me anything about the voting process..." : "Please enter your API key first"}
+              placeholder={apiKey ? "Ask about the voting process..." : "Enter API key to chat"}
               disabled={isLoading || !apiKey}
             />
             <button type="submit" disabled={!input.trim() || isLoading || !apiKey} className="send-btn">
@@ -312,7 +341,7 @@ function App() {
             </button>
           </form>
           <div className="input-footer">
-            CivicGuide is an educational AI tool. Please verify official deadlines with local authorities.
+            CivicGuide is an educational tool. Verify deadlines with local authorities.
           </div>
         </div>
       </main>
